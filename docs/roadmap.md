@@ -13,10 +13,10 @@
 
 ### Gameplay
 
-- Add an achievement gallery
-- Add more secret keyboard sequences
-- Add random idle messages when the button is not clicked
-- Add a chaos meter animation
+- ~Adding an achievement gallery~
+- Adding more secret keyboard sequences
+- Adding random idle messages when the button is not clicked
+- ~Adding a chaos meter animation~
 
 ### Technical Cleanup
 
