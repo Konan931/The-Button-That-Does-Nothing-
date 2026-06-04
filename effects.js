@@ -15,18 +15,37 @@ const unlockedAchievements = new Set(
     JSON.parse(localStorage.getItem(STORAGE_KEYS.achievements) || "[]")
 );
 
+const crypticSymbols = [
+    "⟁", "⟐", "⌬", "⫷", "⫸", "∴", "∵", "⌁", "⧉", "⧊",
+    "⟡", "⟢", "⟣", "⦿", "⨀", "⩇", "⩚", "⩜", "⩟", "⫶",
+    "⧫", "⧬", "⧭", "⧮", "⧯", "⧰", "⧱", "⧲", "⧳", "⌖"
+];
+
 function playSound(type) {
-    const sounds = {
-        boop: "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
-        error: "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
-        scary: "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    const soundMap = {
+        boop: { frequency: 520, duration: 0.12, type: "sine" },
+        error: { frequency: 110, duration: 0.25, type: "square" },
+        scary: { frequency: 55, duration: 0.45, type: "sawtooth" }
     };
 
-    if (!sounds[type]) return;
+    const sound = soundMap[type];
+    if (!sound) return;
 
-    const audio = new Audio(sounds[type]);
-    audio.volume = 0.5;
-    audio.play().catch((error) => console.log("Audio play failed:", error));
+    oscillator.type = sound.type;
+    oscillator.frequency.setValueAtTime(sound.frequency, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(sound.frequency * 0.55, audioContext.currentTime + sound.duration);
+
+    gain.gain.setValueAtTime(0.12, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + sound.duration);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + sound.duration);
 }
 
 function startConfetti(duration = 2000) {
@@ -135,23 +154,23 @@ function showFakeError() {
     playSound("error");
 }
 
-function emojiRain() {
-    const emojis = ["😂", "🤣", "😅", "🤪", "😜", "🤯", "👾", "💩", "🎉", "✨"];
+function symbolRain() {
     const container = document.createElement("div");
     container.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:100;";
     document.body.appendChild(container);
 
     for (let index = 0; index < 50; index += 1) {
         setTimeout(() => {
-            const emoji = document.createElement("div");
-            emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-            emoji.style.position = "absolute";
-            emoji.style.left = `${Math.random() * 100}%`;
-            emoji.style.top = "-50px";
-            emoji.style.fontSize = `${Math.random() * 30 + 20}px`;
-            emoji.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
-            container.appendChild(emoji);
-            setTimeout(() => emoji.remove(), 5000);
+            const glyph = document.createElement("div");
+            glyph.textContent = crypticSymbols[Math.floor(Math.random() * crypticSymbols.length)];
+            glyph.style.position = "absolute";
+            glyph.style.left = `${Math.random() * 100}%`;
+            glyph.style.top = "-50px";
+            glyph.style.fontSize = `${Math.random() * 30 + 20}px`;
+            glyph.style.textShadow = "0 0 14px rgba(0,255,255,0.75)";
+            glyph.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+            container.appendChild(glyph);
+            setTimeout(() => glyph.remove(), 5000);
         }, index * 100);
     }
 
@@ -382,7 +401,7 @@ function registerEffects() {
     registerEffect(5, () => startConfetti(2000));
     registerEffect(7, floatDropButton);
     registerEffect(10, showFakeError);
-    registerEffect(15, emojiRain);
+    registerEffect(15, symbolRain);
     registerEffect(20, flickerBody);
     registerEffect(25, redFlash);
     registerEffect(30, () => alert("Click responsibly."));
