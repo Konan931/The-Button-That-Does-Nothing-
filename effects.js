@@ -1,3 +1,13 @@
+// State
+const state = {
+    clicks: Number(localStorage.getItem("nothingButtonClicks")) || 0,
+    chaosLevel: "harmless"
+};
+
+const unlockedAchievements = new Set(
+    JSON.parse(localStorage.getItem("nothingButtonAchievements") || "[]")
+);
+
 // Sound effects
         function playSound(type) {
             const sounds = {
@@ -93,7 +103,7 @@
             }
         }
 
-        // Effect functions
+// Effect functions
         function showFakeError() {
             const errorDiv = document.createElement('div');
             errorDiv.innerHTML = `
@@ -177,7 +187,63 @@
             return colors[Math.floor(Math.random() * colors.length)];
         }
 
-        // Main effect trigger
+        function getChaosLevel(count) {
+    if (count < 10) return "harmless";
+    if (count < 25) return "annoyed";
+    if (count < 50) return "unstable";
+    if (count < 75) return "dangerous";
+    if (count < 100) return "critical";
+    return "ascended";
+}
+
+function updateHud() {
+    const clickCounter = document.getElementById("clickCounter");
+    const chaosLevel = document.getElementById("chaosLevel");
+
+    if (!clickCounter || !chaosLevel) return;
+
+    clickCounter.textContent = `Clicks: ${state.clicks}`;
+    chaosLevel.textContent = `Chaos: ${state.chaosLevel}`;
+}
+
+function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("visible");
+    }, 50);
+
+    setTimeout(() => {
+        toast.classList.remove("visible");
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function unlockAchievement(id, title) {
+    if (unlockedAchievements.has(id)) return;
+
+    unlockedAchievements.add(id);
+
+    localStorage.setItem(
+        "nothingButtonAchievements",
+        JSON.stringify([...unlockedAchievements])
+    );
+
+    showToast(`Achievement unlocked: ${title}`);
+}
+
+function checkAchievements(count) {
+    if (count === 1) unlockAchievement("first_click", "You touched the void");
+    if (count === 10) unlockAchievement("warning_ignored", "You ignored the warning");
+    if (count === 50) unlockAchievement("unstable_user", "Reality is unstable");
+    if (count === 100) unlockAchievement("nothing_master", "Master of Nothing");
+}
+
+// Main effect trigger
         function triggerEffect(count) {
             const button = document.getElementById('theButton');
             const buttonText = button.querySelector('.button-text');
@@ -277,23 +343,27 @@
 
         // Main initialization
         document.addEventListener('DOMContentLoaded', function() {
-            const button = document.getElementById('theButton');
-            let clickCount = 0;
+                const button = document.getElementById('theButton');
+
+            state.chaosLevel = getChaosLevel(state.clicks);
+            updateHud();            
             
             button.addEventListener('click', function() {
-                clickCount++;
-                
-                // Trigger effect based on click count
-                triggerEffect(clickCount);
-                
-                // Redirect on 100th click
-                if (clickCount === 100) {
+                    state.clicks++;
+                    state.chaosLevel = getChaosLevel(state.clicks);
+
+                    localStorage.setItem("nothingButtonClicks", String(state.clicks));
+
+                    updateHud();
+                    checkAchievements(state.clicks);
+                    triggerEffect(state.clicks);
+
+                    if (state.clicks === 100) {
                     setTimeout(() => {
                         window.location.href = "nothing.html";
                     }, 1000);
-                }
-            });
-            
+             }
+           });            
             // Add hover particle effect
             button.addEventListener('mousemove', function(e) {
                 const particle = button.querySelector('.button-particle');
