@@ -207,6 +207,68 @@ body {
     filter: hue-rotate(180deg) contrast(1.4);
 }
 
+.falling-sigil {
+    position: absolute;
+    color: #00f3ff;
+    font-family: 'Orbitron', ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-shadow:
+        0 0 8px rgba(0, 243, 255, 0.9),
+        0 0 18px rgba(255, 119, 255, 0.6),
+        0 0 30px rgba(0, 255, 136, 0.4);
+    white-space: nowrap;
+}
+
+.sigil-overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    gap: 18px;
+    padding: 20px;
+    background:
+        radial-gradient(circle at center, rgba(0, 243, 255, 0.16), transparent 38%),
+        radial-gradient(circle at 30% 30%, rgba(255, 119, 255, 0.12), transparent 42%),
+        rgba(0, 0, 0, 0.72);
+    opacity: 0;
+    transform: scale(1.03);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+    z-index: 1200;
+}
+
+.sigil-overlay.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.sigil-overlay-seal {
+    width: min(920px, 94vw);
+    padding: 32px;
+    border: 1px solid rgba(0, 243, 255, 0.55);
+    border-radius: 22px;
+    color: #00f3ff;
+    background: rgba(0, 10, 20, 0.72);
+    font-size: clamp(1.35rem, 6vw, 4.8rem);
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-shadow:
+        0 0 12px rgba(0, 243, 255, 0.95),
+        0 0 28px rgba(255, 119, 255, 0.65),
+        0 0 48px rgba(0, 255, 136, 0.42);
+    box-shadow:
+        0 0 40px rgba(0, 243, 255, 0.35),
+        inset 0 0 30px rgba(255, 119, 255, 0.16);
+    animation: sigilPulse 1.618s ease-in-out infinite alternate;
+}
+
+.sigil-overlay-equation {
+    color: #ff77ff;
+    font-size: clamp(0.9rem, 2.8vw, 1.5rem);
+    letter-spacing: 0.18em;
+    text-shadow: 0 0 14px rgba(255, 119, 255, 0.8);
+}
+
 .jiggle { animation: jiggle 0.5s ease; }
 .float-drop { animation: floatDrop 1.5s ease; }
 .flicker { animation: flicker 0.1s infinite; }
@@ -242,18 +304,25 @@ body {
     to { transform: translateY(calc(100vh + 50px)) rotate(360deg); }
 }
 
+@keyframes sigilPulse {
+    from { transform: scale(0.985) rotate(-0.5deg); filter: hue-rotate(0deg); }
+    to { transform: scale(1.015) rotate(0.5deg); filter: hue-rotate(34deg); }
+}
+
 .ending-page {
     overflow: hidden;
 }
 
 .ending-container {
-    width: min(680px, 92vw);
+    width: min(760px, 92vw);
     padding: 42px;
     text-align: center;
     background: rgba(0, 10, 20, 0.72);
     border: 1px solid rgba(0, 243, 255, 0.35);
     border-radius: 20px;
-    box-shadow: 0 0 30px rgba(0, 195, 255, 0.5);
+    box-shadow:
+        0 0 30px rgba(0, 195, 255, 0.5),
+        inset 0 0 30px rgba(255, 119, 255, 0.12);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
@@ -271,10 +340,27 @@ body {
     line-height: 1.6;
 }
 
-.emoji {
-    margin: 18px 0;
-    font-size: clamp(3rem, 12vw, 6rem);
-    animation: floatDrop 3s ease-in-out infinite;
+.emoji,
+.sigil-core {
+    margin: 24px auto;
+    max-width: 100%;
+    color: #00f3ff;
+    font-size: clamp(1.8rem, 7vw, 4.6rem);
+    letter-spacing: 0.14em;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-shadow:
+        0 0 10px rgba(0, 243, 255, 0.95),
+        0 0 24px rgba(255, 119, 255, 0.68),
+        0 0 42px rgba(0, 255, 136, 0.38);
+    animation: sigilPulse 1.618s ease-in-out infinite alternate;
+}
+
+.sigil-formula {
+    color: #ff77ff;
+    font-size: clamp(0.85rem, 2.4vw, 1.25rem);
+    letter-spacing: 0.14em;
+    opacity: 0.82;
 }
 
 @media (prefers-reduced-motion: reduce) {

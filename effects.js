@@ -4,6 +4,9 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_BUTTON_TEXT = "The Button That Does Nothing";
+const PI = Math.PI;
+const PHI = (1 + Math.sqrt(5)) / 2;
+const TAU = PI * 2;
 const effects = new Map();
 
 const state = {
@@ -16,13 +19,44 @@ const unlockedAchievements = new Set(
 );
 
 const crypticSymbols = [
-    "⟁", "⟐", "⌬", "⫷", "⫸", "∴", "∵", "⌁", "⧉", "⧊",
-    "⟡", "⟢", "⟣", "⦿", "⨀", "⩇", "⩚", "⩜", "⩟", "⫶",
-    "⧫", "⧬", "⧭", "⧮", "⧯", "⧰", "⧱", "⧲", "⧳", "⌖"
+    "π", "φ", "ϕ", "τ", "∞", "∅", "∴", "∵", "∷", "∶", "∿", "≜", "≔", "⌁",
+    "⌬", "⌖", "⌘", "⌑", "⟁", "⟐", "⟡", "⟢", "⟣", "⟠", "⟴", "⟲", "⟳",
+    "⦿", "⧉", "⧊", "⧫", "⧬", "⧭", "⧮", "⧯", "⧰", "⧱", "⧲", "⧳",
+    "⨀", "⩇", "⩚", "⩜", "⩟", "⫷", "⫸", "⫶", "⟦", "⟧", "⟬", "⟭"
 ];
 
+function piPhiIndex(seed, length) {
+    const wave = Math.sin((seed + PI) * PHI) + Math.cos((seed + PHI) * TAU);
+    return Math.abs(Math.floor(wave * 10000)) % length;
+}
+
+function pickCrypticSymbol(seed) {
+    return crypticSymbols[piPhiIndex(seed, crypticSymbols.length)];
+}
+
+function buildSigilFragment(seed = state.clicks, width = 7) {
+    const glyphs = [];
+
+    for (let index = 0; index < width; index += 1) {
+        glyphs.push(pickCrypticSymbol(seed + index * PHI));
+    }
+
+    return glyphs.join("");
+}
+
+function buildEtceteraSigil(seed = state.clicks) {
+    const leftWing = buildSigilFragment(seed + PI, 5);
+    const rightWing = [...buildSigilFragment(seed + PHI, 5)].reverse().join("");
+    const core = pickCrypticSymbol(seed * PHI + PI);
+
+    return `${leftWing}⫷π${core}φ⫸${rightWing}`;
+}
+
 function playSound(type) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextConstructor) return;
+
+    const audioContext = new AudioContextConstructor();
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
 
@@ -89,7 +123,7 @@ function startConfetti(duration = 2000) {
         particles.forEach((particle, index) => {
             context.save();
             context.translate(particle.x, particle.y);
-            context.rotate((particle.rotation * Math.PI) / 180);
+            context.rotate((particle.rotation * PI) / 180);
             context.fillStyle = particle.color;
             context.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
             context.restore();
@@ -140,7 +174,7 @@ function showFakeError() {
     message.textContent = "Button click overflow detected";
 
     const hint = document.createElement("p");
-    hint.textContent = "Please stop clicking immediately";
+    hint.textContent = "π/φ recursion refuses to collapse";
 
     const dismiss = document.createElement("button");
     dismiss.type = "button";
@@ -162,12 +196,11 @@ function symbolRain() {
     for (let index = 0; index < 50; index += 1) {
         setTimeout(() => {
             const glyph = document.createElement("div");
-            glyph.textContent = crypticSymbols[Math.floor(Math.random() * crypticSymbols.length)];
-            glyph.style.position = "absolute";
+            glyph.className = "falling-sigil";
+            glyph.textContent = buildSigilFragment(state.clicks + index * PHI, Math.random() > 0.7 ? 5 : 1);
             glyph.style.left = `${Math.random() * 100}%`;
             glyph.style.top = "-50px";
-            glyph.style.fontSize = `${Math.random() * 30 + 20}px`;
-            glyph.style.textShadow = "0 0 14px rgba(0,255,255,0.75)";
+            glyph.style.fontSize = `${Math.random() * 26 + 18}px`;
             glyph.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
             container.appendChild(glyph);
             setTimeout(() => glyph.remove(), 5000);
@@ -175,6 +208,28 @@ function symbolRain() {
     }
 
     setTimeout(() => container.remove(), 6000);
+}
+
+function showEtceteraSeal() {
+    const overlay = document.createElement("div");
+    overlay.className = "sigil-overlay";
+
+    const seal = document.createElement("div");
+    seal.className = "sigil-overlay-seal";
+    seal.textContent = buildEtceteraSigil(state.clicks + 42);
+
+    const equation = document.createElement("div");
+    equation.className = "sigil-overlay-equation";
+    equation.textContent = "π × φ × ETCETERAS = ∞";
+
+    overlay.append(seal, equation);
+    document.body.appendChild(overlay);
+
+    setTimeout(() => overlay.classList.add("visible"), 30);
+    setTimeout(() => {
+        overlay.classList.remove("visible");
+        setTimeout(() => overlay.remove(), 500);
+    }, 3600);
 }
 
 function getRandomColor() {
@@ -226,8 +281,10 @@ function checkAchievements(count) {
     const achievementMap = new Map([
         [1, ["first_click", "You touched the void"]],
         [10, ["warning_ignored", "You ignored the warning"]],
+        [42, ["pi_phi_alignment", "π/φ alignment achieved"]],
         [50, ["unstable_user", "Reality is unstable"]],
-        [66, ["fake_root", "Fake root shell discovered"]],
+        [66, ["fake_root", "Fake visual console discovered"]],
+        [88, ["etcetera_seal", "ETCETERA seal invoked"]],
         [100, ["nothing_master", "Master of Nothing"]]
     ]);
 
@@ -338,10 +395,11 @@ function showFakeTerminal() {
 
     const lines = [
         "booting /dev/nothing...",
-        "checking user persistence...",
-        "click addiction detected",
-        "permission denied",
-        "permission ignored",
+        "loading π/φ drift table...",
+        "checking ETCETERA resonance...",
+        `sigil seed: ${buildEtceteraSigil(state.clicks)}`,
+        "visual gate closed",
+        "symbolic overflow contained",
         "nothing.exe has become self-aware"
     ];
 
@@ -406,11 +464,13 @@ function registerEffects() {
     registerEffect(25, redFlash);
     registerEffect(30, () => alert("Click responsibly."));
     registerEffect(40, rotateBody);
+    registerEffect(42, showEtceteraSeal);
     registerEffect(50, glitchBody);
     registerEffect(66, showFakeTerminal);
     registerEffect(70, moveButtonRandomly);
+    registerEffect(88, showEtceteraSeal);
     registerEffect(90, resetButtonPosition);
-    registerEffect(99, () => changeButtonText("One more click...", 0));
+    registerEffect(99, () => changeButtonText(`πφ ${buildEtceteraSigil(state.clicks)} πφ`, 0));
     registerEffect(100, goToNothingPage);
 }
 
@@ -471,8 +531,9 @@ function initSecretCode() {
 
         if (buffer.join(",") === secretCode.join(",")) {
             document.body.classList.add("secret-mode");
-            changeButtonText("You found the backdoor.", 3000);
-            unlockAchievement("backdoor", "Backdoor discovered");
+            changeButtonText(`πφ ${buildEtceteraSigil(state.clicks)} φπ`, 3000);
+            unlockAchievement("secret_sequence", "Secret sequence discovered");
+            showEtceteraSeal();
         }
     });
 }
